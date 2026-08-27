@@ -26,21 +26,26 @@ define( 'ABIC_LOADED', true );
 define( 'ABIC_VERSION', '1.0.0' );
 
 /**
- * Cap ACF's default block version at 2 for blocks registered without an
- * explicit ACF block version.
+ * Cap ACF's default block version for blocks registered without an explicit
+ * ACF block version.
  *
- * ACF bumps its default to 3 on WordPress 7.1+, which changes the
- * type of any block registered without acf_block_version set. Users of
- * this plugin want to stay on v2 without touching their block registrations,
- * so hold the default at 2. Blocks that explicitly opt into v3 are unaffected;
- * the filter default only applies when no version is set.
+ * ACF bumps its default to 3 on WordPress 7.1+, which changes the type of any
+ * block registered without acf_block_version set. Users of this plugin want to
+ * stay on the pre-7.1 defaults without touching their block registrations, so
+ * mirror them: PHP-registered blocks (acf_register_block_type) get v1, JSON-
+ * registered blocks (block.json) get v2. Blocks that explicitly opt into v3
+ * are unaffected; the filter default only applies when no version is set.
  *
- * @param integer $version The default block version ACF would have used.
+ * @param integer     $version The default block version ACF would have used.
+ * @param array|null  $context The block settings/metadata array (unused).
+ * @param string|null $source  Registration source: 'php', 'json', or null on
+ *                             ACF versions that don't pass this arg — in which
+ *                             case both paths fall through to v2.
  * @return integer
  */
-add_filter( 'acf/blocks/default_block_version', 'abic_cap_default_block_version' );
-function abic_cap_default_block_version( $version ) {
-	return 2;
+add_filter( 'acf/blocks/default_block_version', 'abic_cap_default_block_version', 10, 3 );
+function abic_cap_default_block_version( $version, $context = null, $source = null ) {
+	return 'php' === $source ? 1 : 2;
 }
 
 /**
