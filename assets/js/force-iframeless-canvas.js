@@ -24,16 +24,30 @@
 		if ( ! obj || typeof obj[ name ] !== 'function' ) {
 			return false;
 		}
-		if ( obj[ name ].__abicPatched ) {
+		var current = obj[ name ];
+		if ( current.__abicPatched || current.__abicUnpatchable ) {
 			return true;
 		}
-		var original = obj[ name ];
-		obj[ name ] = function ( type, props ) {
+		var wrapper = function ( type, props ) {
 			var args = Array.prototype.slice.call( arguments );
 			args[ 1 ] = withoutIframe( props );
-			return original.apply( this, args );
+			return current.apply( this, args );
 		};
-		obj[ name ].__abicPatched = true;
+		wrapper.__abicPatched = true;
+		try {
+			obj[ name ] = wrapper;
+			if ( obj[ name ] === wrapper ) {
+				return true;
+			}
+		} catch ( e ) {
+			// Getter-only or non-writable slot — fall through to mark as unpatchable.
+		}
+		try {
+			current.__abicUnpatchable = true;
+		} catch ( e ) {
+			// Frozen function object — can't mark it. patchAll still treats us
+			// as done via the return below so the retry loop stops.
+		}
 		return true;
 	}
 
