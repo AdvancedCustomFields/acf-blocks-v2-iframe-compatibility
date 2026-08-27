@@ -4,7 +4,6 @@
  * Plugin URI:        https://advancedcustomfields.com
  * Description:       Forces the WordPress block editor to not use the iframe canvas, if there's an ACF v2 block on the site. This plugin is intended to give site owners more time to migrate to the iframe experience provided by core. It should not be used permanently.
  * Version:           1.0.0
- * Requires at least: 7.1
  * Requires PHP:      7.4
  * Author:            ACF
  * Author URI:        https://advancedcustomfields.com
@@ -13,6 +12,11 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+// No-op below WP 7.1 so this plugin can be installed ahead of the upgrade and activate on its own.
+if ( version_compare( get_bloginfo( 'version' ), '7.1', '<' ) ) {
+	return;
+}
 
 if ( defined( 'ABIC_LOADED' ) ) {
 	return;
